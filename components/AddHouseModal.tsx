@@ -10,6 +10,41 @@ interface AddHouseModalProps {
   onAdd: (house: House) => void;
 }
 
+// Função auxiliar para comprimir e converter imagem para Base64
+// Isso garante que a imagem seja salva no banco de dados, não apenas um link temporário
+const convertImageToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        
+        // Redimensionar se for muito grande (max 800px) para não estourar o banco de dados
+        const MAX_WIDTH = 800;
+        if (width > MAX_WIDTH) {
+          height *= MAX_WIDTH / width;
+          width = MAX_WIDTH;
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        
+        // Converter para JPEG com qualidade 0.7 (compressão)
+        resolve(canvas.toDataURL('image/jpeg', 0.7));
+      };
+      img.onerror = reject;
+      img.src = event.target?.result as string;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+};
+
 export const AddHouseModal: React.FC<AddHouseModalProps> = ({ isOpen, onClose, onAdd }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -21,17 +56,29 @@ export const AddHouseModal: React.FC<AddHouseModalProps> = ({ isOpen, onClose, o
   });
   
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isProcessingImage, setIsProcessingImage] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      const url = URL.createObjectURL(e.target.files[0]);
-      setPreviewImage(url);
-      setFormData(prev => ({ ...prev, coverImage: url }));
+      setIsProcessingImage(true);
+      try {
+        const file = e.target.files[0];
+        // Converte para Base64 real para salvar no banco
+        const base64String = await convertImageToBase64(file);
+        
+        setPreviewImage(base64String);
+        setFormData(prev => ({ ...prev, coverImage: base64String }));
+      } catch (error) {
+        console.error("Erro ao processar imagem", error);
+        alert("Erro ao processar a imagem. Tente uma menor.");
+      } finally {
+        setIsProcessingImage(false);
+      }
     }
   };
 
@@ -50,6 +97,8 @@ export const AddHouseModal: React.FC<AddHouseModalProps> = ({ isOpen, onClose, o
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (isProcessingImage) return;
+
     // Default image if none selected
     const finalImage = formData.coverImage || `https://picsum.photos/800/600?random=${Math.random()}`;
 
@@ -160,23 +209,25 @@ export const AddHouseModal: React.FC<AddHouseModalProps> = ({ isOpen, onClose, o
       <div className="space-y-2">
         <label className="text-xs uppercase tracking-wider font-bold text-gold-600">Foto de Capa</label>
         <div className="flex items-center gap-4 p-4 border border-dashed border-luxury-border rounded-lg bg-luxury-900/30">
-            <label className="flex items-center gap-2 cursor-pointer bg-luxury-800 hover:bg-luxury-700 text-white px-4 py-2.5 rounded-lg transition-colors border border-luxury-border shadow-sm">
-                <Upload size={16} />
-                <span className="text-sm font-medium">Escolher Arquivo</span>
-                <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+            <label className={`flex items-center gap-2 cursor-pointer bg-luxury-800 hover:bg-luxury-700 text-white px-4 py-2.5 rounded-lg transition-colors border border-luxury-border shadow-sm ${isProcessingImage ? 'opacity-50 cursor-wait' : ''}`}>
+                {isProcessingImage ? <Loader2 className="animate-spin" size={16}/> : <Upload size={16} />}
+                <span className="text-sm font-medium">{isProcessingImage ? 'Processando...' : 'Escolher Arquivo'}</span>
+                <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" disabled={isProcessingImage} />
             </label>
             {previewImage && (
                 <div className="h-16 w-16 rounded overflow-hidden border border-gold-500/30 shadow-md">
                     <img src={previewImage} alt="Preview" className="h-full w-full object-cover" />
                 </div>
             )}
-            {!previewImage && <span className="text-xs text-gray-500 italic">Nenhuma imagem selecionada</span>}
+            {!previewImage && !isProcessingImage && <span className="text-xs text-gray-500 italic">Nenhuma imagem selecionada</span>}
         </div>
       </div>
 
       <div className="flex justify-end gap-3 mt-8 pt-5 border-t border-luxury-border">
         <Button type="button" variant="secondary" onClick={onClose}>Cancelar</Button>
-        <Button type="submit">Salvar Imóvel</Button>
+        <Button type="submit" disabled={isProcessingImage}>
+          {isProcessingImage ? 'Salvando Imagem...' : 'Salvar Imóvel'}
+        </Button>
       </div>
     </form>
   );

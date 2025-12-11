@@ -181,7 +181,8 @@ export default function App() {
   }
 
   return (
-    <div className="h-[100dvh] flex flex-col bg-luxury-950 text-slate-200 font-sans selection:bg-gold-500/30 overflow-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-luxury-800 to-luxury-950">
+    // Alterado: Fixed inset-0 para mobile garante que o app se comporte como nativo sem scroll do body
+    <div className="fixed inset-0 md:relative md:h-screen flex flex-col bg-luxury-950 text-slate-200 font-sans selection:bg-gold-500/30 overflow-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-luxury-800 to-luxury-950">
       {/* Header */}
       <header className="shrink-0 bg-luxury-900/90 backdrop-blur-md border-b border-gold-500/10 z-40 relative">
         <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-gold-500/50 to-transparent"></div>
@@ -257,7 +258,7 @@ export default function App() {
       </div>
 
       {/* Main Board */}
-      <main className="flex-1 overflow-hidden p-4 md:p-8 max-w-[1900px] mx-auto w-full">
+      <main className="flex-1 md:overflow-hidden relative p-4 md:p-8 max-w-[1900px] mx-auto w-full">
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 h-full">
           {COLUMNS.map(column => {
             const columnHouses = filteredHouses.filter(h => h.status === column.id);

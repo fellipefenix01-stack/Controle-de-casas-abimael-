@@ -1,7 +1,7 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { House, MediaItem, COLUMNS, HouseStatus } from '../types';
 import { Button } from './Button';
-import { Trash2, Plus, Image as ImageIcon, Video, ChevronDown, Check, Pencil } from 'lucide-react';
+import { Trash2, Plus, Image as ImageIcon, Video, ChevronDown, Check, Pencil, Loader2 } from 'lucide-react';
 
 interface HouseDetailsModalProps {
   house: House;
@@ -11,8 +11,38 @@ interface HouseDetailsModalProps {
   onDelete: (houseId: string) => void;
 }
 
+// Reutilizando a lógica de compressão (idealmente estaria num arquivo utils.ts, mas mantendo aqui para simplicidade de deploy)
+const convertImageToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        const MAX_WIDTH = 800;
+        if (width > MAX_WIDTH) {
+          height *= MAX_WIDTH / width;
+          width = MAX_WIDTH;
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.7));
+      };
+      img.onerror = reject;
+      img.src = event.target?.result as string;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+};
+
 export const HouseDetailsModal: React.FC<HouseDetailsModalProps> = ({ house, isOpen, onClose, onUpdate, onDelete }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   if (!isOpen) return null;
 
@@ -39,19 +69,46 @@ export const HouseDetailsModal: React.FC<HouseDetailsModalProps> = ({ house, isO
     onUpdate({ ...house, description: e.target.value });
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const newMediaItems: MediaItem[] = (Array.from(e.target.files) as File[]).map(file => ({
-        id: crypto.randomUUID(),
-        url: URL.createObjectURL(file),
-        type: file.type.startsWith('video') ? 'video' : 'image'
-      }));
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setIsUploading(true);
+      const files: File[] = Array.from(e.target.files);
+      const newMediaItems: MediaItem[] = [];
 
-      const updatedHouse = {
-        ...house,
-        gallery: [...house.gallery, ...newMediaItems]
-      };
-      onUpdate(updatedHouse);
+      try {
+        for (const file of files) {
+          let url = '';
+          if (file.type.startsWith('video')) {
+            // Vídeos ainda precisam de uma solução de Storage real ou URL externa
+            // Por enquanto, mantemos blob para vídeo, mas avisamos (ou ignoramos para evitar erro no banco)
+            // url = URL.createObjectURL(file); // Blob não persiste.
+            alert("Upload de vídeo requer configuração de Storage. Apenas imagens são suportadas no modo rápido.");
+            continue; 
+          } else {
+            // Comprime a imagem
+            url = await convertImageToBase64(file);
+          }
+
+          newMediaItems.push({
+            id: crypto.randomUUID(),
+            url: url,
+            type: 'image'
+          });
+        }
+
+        if (newMediaItems.length > 0) {
+          const updatedHouse = {
+            ...house,
+            gallery: [...house.gallery, ...newMediaItems]
+          };
+          onUpdate(updatedHouse);
+        }
+      } catch (error) {
+        console.error("Erro no upload", error);
+        alert("Erro ao processar imagens.");
+      } finally {
+        setIsUploading(false);
+      }
     }
   };
 
@@ -124,18 +181,20 @@ export const HouseDetailsModal: React.FC<HouseDetailsModalProps> = ({ house, isO
                     {/* Add Button */}
                     <button 
                         onClick={() => fileInputRef.current?.click()}
-                        className="aspect-square bg-luxury-800/50 border border-dashed border-luxury-border rounded-lg flex flex-col items-center justify-center text-gray-500 hover:text-gold-400 hover:border-gold-500/50 hover:bg-luxury-800 transition-all group"
+                        disabled={isUploading}
+                        className="aspect-square bg-luxury-800/50 border border-dashed border-luxury-border rounded-lg flex flex-col items-center justify-center text-gray-500 hover:text-gold-400 hover:border-gold-500/50 hover:bg-luxury-800 transition-all group disabled:opacity-50 disabled:cursor-wait"
                     >
-                        <Plus size={24} className="group-hover:scale-110 transition-transform"/>
-                        <span className="text-[10px] mt-2 uppercase tracking-wider font-medium">Adicionar</span>
+                        {isUploading ? <Loader2 className="animate-spin" size={24}/> : <Plus size={24} className="group-hover:scale-110 transition-transform"/>}
+                        <span className="text-[10px] mt-2 uppercase tracking-wider font-medium">{isUploading ? '...' : 'Adicionar'}</span>
                     </button>
                     <input 
                         type="file" 
                         multiple 
-                        accept="image/*,video/*" 
+                        accept="image/*" 
                         ref={fileInputRef} 
                         className="hidden" 
                         onChange={handleFileUpload}
+                        disabled={isUploading}
                     />
 
                     {/* Gallery Items */}
