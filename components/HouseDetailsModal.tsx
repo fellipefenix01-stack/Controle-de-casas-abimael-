@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { House, MediaItem, COLUMNS, HouseStatus } from '../types';
 import { Button } from './Button';
-import { Trash2, Plus, Image as ImageIcon, Video, ChevronDown } from 'lucide-react';
+import { Trash2, Plus, Image as ImageIcon, Video, ChevronDown, Check, Pencil } from 'lucide-react';
 
 interface HouseDetailsModalProps {
   house: House;
@@ -25,6 +25,18 @@ export const HouseDetailsModal: React.FC<HouseDetailsModalProps> = ({ house, isO
 
   const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     onUpdate({ ...house, status: e.target.value as HouseStatus });
+  };
+  
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onUpdate({ ...house, name: e.target.value });
+  };
+
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onUpdate({ ...house, price: e.target.value });
+  };
+
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    onUpdate({ ...house, description: e.target.value });
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -52,40 +64,70 @@ export const HouseDetailsModal: React.FC<HouseDetailsModalProps> = ({ house, isO
   };
 
   return (
-    <div className="space-y-6 pb-6">
+    <div className="space-y-8 pb-4">
       {/* Header Info */}
-      <div className="relative h-48 md:h-64 rounded-xl overflow-hidden group">
+      <div className="relative h-56 md:h-72 rounded-lg overflow-hidden group shadow-lg shadow-black/50 border border-luxury-border">
         <img src={house.coverImage} alt={house.name} className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent" />
-        <div className="absolute bottom-4 left-4 right-4">
-            <h3 className="text-xl md:text-2xl font-bold text-white leading-tight mb-1">{house.name}</h3>
-            <p className="text-blue-400 font-semibold">{house.price}</p>
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-90" />
+        
+        <div className="absolute bottom-6 left-6 right-6">
+            <div className="relative group/name mb-2">
+                <input 
+                    value={house.name}
+                    onChange={handleNameChange}
+                    className="w-full bg-transparent text-2xl md:text-3xl font-serif font-bold text-white leading-tight tracking-wide focus:outline-none focus:bg-black/40 rounded px-2 -ml-2 border border-transparent focus:border-white/10 transition-all placeholder-white/50"
+                    placeholder="Nome do Imóvel"
+                />
+                <Pencil size={14} className="absolute right-full top-1/2 -translate-y-1/2 mr-2 text-white/30 opacity-0 group-hover/name:opacity-100 transition-opacity hidden md:block" />
+            </div>
+
+            <div className="inline-flex items-center gap-2 bg-gold-500/10 border border-gold-500/30 px-3 py-1 rounded backdrop-blur-md group/price hover:bg-black/40 transition-colors cursor-text">
+                <input
+                    value={house.price}
+                    onChange={handlePriceChange}
+                    className="bg-transparent text-gold-400 font-semibold focus:outline-none min-w-[100px] w-auto"
+                    placeholder="Valor (R$)"
+                />
+                <Pencil size={12} className="text-gold-500/50 group-hover/price:text-gold-400 transition-colors" />
+            </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="md:col-span-2 space-y-8">
             <div>
-                <h4 className="text-sm uppercase tracking-wider text-slate-500 font-bold mb-2">Sobre o Imóvel</h4>
-                <p className="text-slate-300 leading-relaxed bg-slate-800/50 p-4 rounded-lg border border-slate-700/50 text-sm md:text-base">
-                    {house.description || "Sem descrição disponível."}
-                </p>
+                <h4 className="text-xs uppercase tracking-[0.2em] text-gold-600 font-bold mb-3 flex items-center gap-2">
+                    Sobre o Imóvel
+                    <div className="h-px bg-luxury-border flex-1"></div>
+                </h4>
+                <div className="relative group/desc">
+                    <textarea 
+                        value={house.description || ""}
+                        onChange={handleDescriptionChange}
+                        rows={6}
+                        className="w-full text-gray-300 leading-relaxed bg-luxury-800/30 p-5 rounded-lg border border-luxury-border text-sm md:text-base font-light focus:outline-none focus:ring-1 focus:ring-gold-500/50 focus:bg-luxury-800/50 transition-all resize-none"
+                        placeholder="Adicione uma descrição detalhada..."
+                    />
+                     <div className="absolute top-3 right-3 opacity-0 group-hover/desc:opacity-100 transition-opacity pointer-events-none">
+                        <Pencil size={14} className="text-gray-500" />
+                     </div>
+                </div>
             </div>
             
             <div>
-                <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-sm uppercase tracking-wider text-slate-500 font-bold">Galeria de Mídia</h4>
-                    <span className="text-xs text-slate-500">{house.gallery.length} itens</span>
+                <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-xs uppercase tracking-[0.2em] text-gold-600 font-bold">Galeria de Mídia</h4>
+                    <span className="text-xs text-gray-500 font-mono">{house.gallery.length} ITENS</span>
                 </div>
                 
-                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                     {/* Add Button */}
                     <button 
                         onClick={() => fileInputRef.current?.click()}
-                        className="aspect-square bg-slate-800 border-2 border-dashed border-slate-600 rounded-lg flex flex-col items-center justify-center text-slate-400 hover:text-white hover:border-blue-500 hover:bg-slate-700 transition-all"
+                        className="aspect-square bg-luxury-800/50 border border-dashed border-luxury-border rounded-lg flex flex-col items-center justify-center text-gray-500 hover:text-gold-400 hover:border-gold-500/50 hover:bg-luxury-800 transition-all group"
                     >
-                        <Plus size={24} />
-                        <span className="text-xs mt-1">Add</span>
+                        <Plus size={24} className="group-hover:scale-110 transition-transform"/>
+                        <span className="text-[10px] mt-2 uppercase tracking-wider font-medium">Adicionar</span>
                     </button>
                     <input 
                         type="file" 
@@ -98,17 +140,17 @@ export const HouseDetailsModal: React.FC<HouseDetailsModalProps> = ({ house, isO
 
                     {/* Gallery Items */}
                     {house.gallery.map(media => (
-                        <div key={media.id} className="relative aspect-square group rounded-lg overflow-hidden bg-black">
+                        <div key={media.id} className="relative aspect-square group rounded-lg overflow-hidden bg-black ring-1 ring-white/10">
                             {media.type === 'video' ? (
                                 <video src={media.url} className="w-full h-full object-cover opacity-80" />
                             ) : (
-                                <img src={media.url} alt="Gallery" className="w-full h-full object-cover" />
+                                <img src={media.url} alt="Gallery" className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" />
                             )}
                             
-                            <div className="absolute top-1 right-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="absolute top-1 right-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity z-10">
                                 <button 
                                     onClick={() => removeMedia(media.id)}
-                                    className="bg-red-500/80 p-1.5 rounded-full text-white hover:bg-red-600 backdrop-blur-sm"
+                                    className="bg-black/80 p-1.5 rounded text-red-400 hover:text-red-300 hover:bg-black backdrop-blur-md border border-red-900/30"
                                 >
                                     <Trash2 size={12} />
                                 </button>
@@ -123,43 +165,46 @@ export const HouseDetailsModal: React.FC<HouseDetailsModalProps> = ({ house, isO
         </div>
 
         <div className="space-y-6">
-            <div>
-                <h4 className="text-sm uppercase tracking-wider text-slate-500 font-bold mb-2">Detalhes</h4>
-                <ul className="space-y-3">
-                    <li className="flex flex-col gap-1 text-sm py-2 border-b border-slate-700">
-                        <span className="text-slate-400 text-xs">Localização</span>
-                        <span className="text-white">{house.address}</span>
-                    </li>
-                    <li className="flex flex-col gap-1 text-sm py-2 border-b border-slate-700">
-                        <span className="text-slate-400 text-xs">Status (Coluna)</span>
-                        <div className="relative">
+            <div className="bg-luxury-800/30 p-5 rounded-lg border border-luxury-border space-y-4">
+                <h4 className="text-xs uppercase tracking-[0.2em] text-gray-400 font-bold mb-2">Ficha Técnica</h4>
+                
+                <div className="space-y-4">
+                    <div className="space-y-1">
+                        <span className="text-xs text-gold-600 font-medium">LOCALIZAÇÃO</span>
+                        <div className="text-sm text-gray-200">{house.address}</div>
+                    </div>
+
+                    <div className="space-y-1">
+                        <span className="text-xs text-gold-600 font-medium">STATUS ATUAL</span>
+                        <div className="relative group">
                            <select 
                              value={house.status} 
                              onChange={handleStatusChange}
-                             className="w-full bg-slate-800 text-white p-2 rounded border border-slate-600 appearance-none focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                             className="w-full bg-luxury-950 text-gray-200 pl-3 pr-8 py-2.5 rounded border border-luxury-border appearance-none focus:ring-1 focus:ring-gold-500 focus:border-gold-500 focus:outline-none transition-all cursor-pointer hover:border-gray-600 text-sm"
                            >
                              {COLUMNS.map(col => (
                                <option key={col.id} value={col.id}>{col.title}</option>
                              ))}
                            </select>
-                           <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+                           <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none group-hover:text-gold-400 transition-colors" size={14} />
                         </div>
-                    </li>
-                </ul>
+                    </div>
+                </div>
             </div>
 
             <div>
-                <h4 className="text-sm uppercase tracking-wider text-slate-500 font-bold mb-2">Comodidades</h4>
+                <h4 className="text-xs uppercase tracking-[0.2em] text-gray-400 font-bold mb-3">Destaques</h4>
                 <div className="flex flex-wrap gap-2">
                     {house.features.map((f, i) => (
-                        <span key={i} className="text-xs bg-slate-700 text-slate-300 px-2 py-1 rounded-md border border-slate-600">
+                        <div key={i} className="flex items-center gap-1.5 text-xs bg-luxury-800/50 text-gray-300 px-3 py-1.5 rounded-full border border-luxury-border">
+                            <Check size={10} className="text-gold-500" />
                             {f}
-                        </span>
+                        </div>
                     ))}
                 </div>
             </div>
 
-            <div className="pt-4">
+            <div className="pt-6 border-t border-luxury-border/50">
                 <Button variant="danger" className="w-full" onClick={handleDelete} icon={<Trash2 size={16}/>}>
                     Remover Imóvel
                 </Button>

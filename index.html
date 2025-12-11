@@ -7,22 +7,34 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
       tailwind.config = {
         theme: {
           extend: {
             fontFamily: {
               sans: ['Inter', 'sans-serif'],
+              serif: ['Playfair Display', 'serif'],
             },
             colors: {
-              brand: {
-                dark: '#0f172a',
-                primary: '#3b82f6',
-                accent: '#8b5cf6',
-                success: '#10b981',
-                warning: '#f59e0b',
-                surface: '#1e293b'
+              gold: {
+                50: '#FBF7E6',
+                100: '#F5ECC5',
+                200: '#EBD890',
+                300: '#E2C45D',
+                400: '#D4AF37', /* Classic Gold */
+                500: '#B59428',
+                600: '#94781E',
+                700: '#755E16',
+                800: '#584610',
+                900: '#3D300A',
+              },
+              luxury: {
+                950: '#050505',
+                900: '#0a0a0a',
+                800: '#121212',
+                700: '#1c1c1c',
+                border: '#2a2a2a'
               }
             }
           }
@@ -31,23 +43,23 @@
     </script>
     <style>
       body {
-        background-color: #0f172a; /* brand-dark */
-        color: white;
+        background-color: #050505; /* luxury-950 */
+        color: #e2e8f0;
       }
       /* Custom scrollbar */
       ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
+        width: 6px;
+        height: 6px;
       }
       ::-webkit-scrollbar-track {
-        background: #1e293b; 
+        background: #0a0a0a; 
       }
       ::-webkit-scrollbar-thumb {
-        background: #475569; 
-        border-radius: 4px;
+        background: #2a2a2a; 
+        border-radius: 3px;
       }
       ::-webkit-scrollbar-thumb:hover {
-        background: #64748b; 
+        background: #D4AF37; 
       }
     </style>
   <script type="importmap">

@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'outline';
   icon?: React.ReactNode;
 }
 
@@ -12,13 +12,14 @@ export const Button: React.FC<ButtonProps> = ({
   className = '', 
   ...props 
 }) => {
-  const baseStyles = "inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed";
+  const baseStyles = "inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black disabled:opacity-50 disabled:cursor-not-allowed tracking-wide text-sm";
   
   const variants = {
-    primary: "bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-900/20 focus:ring-blue-500",
-    secondary: "bg-slate-700 hover:bg-slate-600 text-white focus:ring-slate-500",
-    danger: "bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 border border-red-500/20 focus:ring-red-500",
-    ghost: "bg-transparent hover:bg-slate-800 text-slate-400 hover:text-white"
+    primary: "bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-400 hover:to-gold-500 text-black font-semibold shadow-[0_0_15px_rgba(212,175,55,0.3)] hover:shadow-[0_0_25px_rgba(212,175,55,0.5)] border border-gold-400",
+    secondary: "bg-luxury-800 hover:bg-luxury-700 text-white border border-luxury-border hover:border-gray-600",
+    outline: "bg-transparent border border-gold-500/50 text-gold-400 hover:bg-gold-500/10 hover:border-gold-400",
+    danger: "bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 border border-red-900/50",
+    ghost: "bg-transparent hover:bg-white/5 text-gray-400 hover:text-white"
   };
 
   return (

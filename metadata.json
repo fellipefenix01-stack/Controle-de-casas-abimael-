@@ -1,7 +1,5 @@
 {
   "name": "Abimael Sales - Gestor de Imóveis",
   "description": "Sistema visual de gerenciamento de catálogo imobiliário com funcionalidade Drag & Drop e IA Gemini.",
-  "requestFramePermissions": [
-    "camera"
-  ]
+  "requestFramePermissions": []
 }
