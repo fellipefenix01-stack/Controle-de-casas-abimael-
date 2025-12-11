@@ -144,7 +144,7 @@ export default function App() {
   // Render Error State
   if (error) {
     return (
-      <div className="h-[100dvh] w-full bg-luxury-950 flex items-center justify-center flex-col gap-6 p-8 relative overflow-hidden">
+      <div className="min-h-[100dvh] w-full bg-luxury-950 flex items-center justify-center flex-col gap-6 p-8 relative overflow-hidden">
         {/* Background ambience */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-red-900/10 via-luxury-950 to-luxury-950"></div>
         
@@ -181,10 +181,11 @@ export default function App() {
   }
 
   return (
-    // Alterado: Fixed inset-0 para mobile garante que o app se comporte como nativo sem scroll do body
-    <div className="fixed inset-0 md:relative md:h-screen flex flex-col bg-luxury-950 text-slate-200 font-sans selection:bg-gold-500/30 overflow-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-luxury-800 to-luxury-950">
+    // FIX: Alterado de 'fixed inset-0' para layout flexível no mobile para permitir rolagem nativa do corpo da página.
+    // O 'md:h-screen md:overflow-hidden' mantém o comportamento de "app" no desktop.
+    <div className="min-h-[100dvh] flex flex-col bg-luxury-950 text-slate-200 font-sans selection:bg-gold-500/30 md:h-screen md:overflow-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-luxury-800 to-luxury-950">
       {/* Header */}
-      <header className="shrink-0 bg-luxury-900/90 backdrop-blur-md border-b border-gold-500/10 z-40 relative">
+      <header className="shrink-0 bg-luxury-900/90 backdrop-blur-md border-b border-gold-500/10 z-40 sticky top-0 md:relative">
         <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-gold-500/50 to-transparent"></div>
         <div className="max-w-[1900px] mx-auto px-4 lg:px-6 h-20 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4 shrink-0">
@@ -217,8 +218,8 @@ export default function App() {
         </div>
       </header>
 
-      {/* Mobile Search Bar */}
-      <div className="md:hidden px-4 py-3 bg-luxury-900 border-b border-luxury-border flex justify-between items-center gap-2">
+      {/* Mobile Search Bar - Sticky on scroll */}
+      <div className="md:hidden px-4 py-3 bg-luxury-900 border-b border-luxury-border flex justify-between items-center gap-2 sticky top-20 z-30">
          <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-3 h-3" />
             <input 
@@ -231,8 +232,8 @@ export default function App() {
          </div>
       </div>
 
-      {/* Mobile Tabs */}
-      <div className="md:hidden shrink-0 bg-luxury-900 border-b border-luxury-border overflow-x-auto scrollbar-hide">
+      {/* Mobile Tabs - Sticky on scroll */}
+      <div className="md:hidden shrink-0 bg-luxury-900 border-b border-luxury-border overflow-x-auto scrollbar-hide sticky top-[120px] z-20 shadow-md">
         <div className="flex p-2 gap-2 min-w-full">
           {COLUMNS.map(col => {
             const isActive = activeTab === col.id;
@@ -240,7 +241,11 @@ export default function App() {
             return (
               <button
                 key={col.id}
-                onClick={() => setActiveTab(col.id)}
+                onClick={() => {
+                  setActiveTab(col.id);
+                  // Opcional: scrollar para o topo ao trocar de aba para ver o conteúdo
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
                 className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-xs font-medium transition-all whitespace-nowrap border ${
                   isActive 
                     ? 'bg-luxury-800 text-gold-400 border-gold-500/30 shadow-md' 
@@ -258,8 +263,8 @@ export default function App() {
       </div>
 
       {/* Main Board */}
-      <main className="flex-1 md:overflow-hidden relative p-4 md:p-8 max-w-[1900px] mx-auto w-full">
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 h-full">
+      <main className="flex-1 relative p-4 md:p-8 max-w-[1900px] mx-auto w-full md:overflow-hidden">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 md:h-full">
           {COLUMNS.map(column => {
             const columnHouses = filteredHouses.filter(h => h.status === column.id);
             const isOver = dragOverColumn === column.id;
@@ -271,7 +276,9 @@ export default function App() {
             return (
               <div 
                 key={column.id}
-                className={`${displayClass} flex-col rounded-2xl transition-all duration-300 h-full max-h-full ${
+                // FIX: Altura automática no mobile (h-auto) para permitir que o conteúdo cresça e a página tenha scroll
+                // Desktop mantém h-full e overflow interno
+                className={`${displayClass} flex-col rounded-2xl transition-all duration-300 md:h-full md:max-h-full h-auto min-h-[50vh] ${
                   isOver ? 'bg-luxury-800/40 ring-1 ring-gold-500/30' : 'bg-luxury-900/20'
                 } border border-white/5 backdrop-blur-sm`}
                 onDragOver={(e) => handleDragOver(e, column.id)}
@@ -293,7 +300,8 @@ export default function App() {
                 </div>
 
                 {/* Drop Zone / List */}
-                <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-4 custom-scrollbar">
+                {/* FIX: overflow-y-auto removido no mobile, permitindo que a lista expanda o container pai */}
+                <div className="flex-1 md:overflow-y-auto p-3 md:p-4 space-y-4 custom-scrollbar">
                   {columnHouses.length === 0 ? (
                     <div className="h-40 border border-dashed border-luxury-border rounded-xl flex flex-col items-center justify-center text-gray-600 p-6 text-center bg-luxury-900/20">
                       <p className="text-sm font-medium">Lista Vazia</p>
